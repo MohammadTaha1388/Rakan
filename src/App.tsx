@@ -36,10 +36,7 @@ import {
   Settings as SettingsIcon,
   Wrench,
   History,
-  FileText,
-  Maximize2,
-  Minimize2,
-  Share2
+  FileText
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { WelcomeHero } from './components/WelcomeHero';
@@ -53,7 +50,6 @@ import { DeveloperPanelModal } from './components/DeveloperPanelModal';
 import { NotificationCenter } from './components/NotificationCenter';
 import { HashtagSuggestions } from './components/HashtagSuggestions';
 import { ShortcutsModal } from './components/ShortcutsModal';
-import { ShareSummaryModal } from './components/ShareSummaryModal';
 import { ChatMessage, AdvisorSettings, UserProfile, AppNotification } from './types';
 import { DEFAULT_SETTINGS, SYSTEM_PROMPT_PRESETS } from './utils/constants';
 import { STUDY_HASHTAGS, StudyHashtag } from './utils/studyHashtags';
@@ -161,7 +157,7 @@ export default function App() {
     showToast(`زبان برنامه به «${newLang}» تغییر یافت.`);
   };
 
-  // Modals, Drawers & UI Modes
+  // Modals & Drawers
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
@@ -170,49 +166,7 @@ export default function App() {
   const [isDevPanelOpen, setIsDevPanelOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [shareSummaryText, setShareSummaryText] = useState<string>('');
-  const [isFocusMode, setIsFocusMode] = useState(false);
   const [lastAutoSavedAt, setLastAutoSavedAt] = useState<string | null>(null);
-
-  // Daily Push Notification Scheduler Effect
-  useEffect(() => {
-    if (!settings.dailyReminderEnabled || !settings.dailyReminderTime) return;
-
-    const checkReminder = () => {
-      const now = new Date();
-      const currentDay = now.getDay(); // 0=Sunday, 6=Saturday
-      const activeDays = settings.dailyReminderDays || [0, 1, 2, 3, 4, 5, 6];
-      if (!activeDays.includes(currentDay)) return;
-
-      const currentHours = String(now.getHours()).padStart(2, '0');
-      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
-      const currentTimeStr = `${currentHours}:${currentMinutes}`;
-
-      if (currentTimeStr === settings.dailyReminderTime) {
-        const lastSentDateKey = `rakan_last_reminder_${now.toDateString()}`;
-        if (!localStorage.getItem(lastSentDateKey)) {
-          localStorage.setItem(lastSentDateKey, 'sent');
-          dispatchAppNotification(
-            '⏰ وقت مطالعه فرارسید!',
-            `سلام ${settings.studentName || 'دانش‌آموز عزیز'}! ساعت مطالعه روزانه برای هدف «${settings.studyGoal || 'پیشرفت درسی و حل تست'}» آغاز شد. با تمرکز شروع کن!`,
-            'dailyReminder',
-            true
-          );
-        }
-      }
-    };
-
-    checkReminder();
-    const interval = setInterval(checkReminder, 30000);
-    return () => clearInterval(interval);
-  }, [
-    settings.dailyReminderEnabled,
-    settings.dailyReminderTime,
-    settings.dailyReminderDays,
-    settings.studentName,
-    settings.studyGoal
-  ]);
 
   // Advisor Settings with automatic OS theme detection
   const [settings, setSettings] = useState<AdvisorSettings>(() => {
@@ -663,24 +617,13 @@ export default function App() {
         return;
       }
 
-      // Alt+F or Ctrl+Shift+F: Toggle Focus Mode
-      if ((modifier && e.shiftKey && e.key.toLowerCase() === 'f') || (e.altKey && e.key.toLowerCase() === 'f')) {
-        e.preventDefault();
-        setIsFocusMode(prev => !prev);
-        return;
-      }
-
-      // Esc: Close any open modal or exit focus mode
+      // Esc: Close any open modal
       if (e.key === 'Escape') {
-        if (isFocusMode) {
-          setIsFocusMode(false);
-        }
         setIsShortcutsOpen(false);
         setIsSettingsOpen(false);
         setIsHistoryOpen(false);
         setIsAuthOpen(false);
         setIsNotificationsOpen(false);
-        setIsShareModalOpen(false);
       }
     };
 
@@ -688,7 +631,7 @@ export default function App() {
     return () => {
       window.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  }, [messages, user, settings, isListening, isFocusMode]);
+  }, [messages, user, settings, isListening]);
 
   // Auth Handlers
   const handleAuthSuccess = (profile: UserProfile, token: string) => {
@@ -739,24 +682,6 @@ export default function App() {
       setMessages([]);
       sessionStorage.removeItem('rakan_current_chat');
     }
-  };
-
-  // Open Share Summary Modal with custom or generated text
-  const handleOpenShareModal = (customText?: string) => {
-    if (customText) {
-      setShareSummaryText(customText);
-    } else if (messages.length > 0) {
-      const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant' && !m.isError);
-      if (lastAssistant) {
-        setShareSummaryText(lastAssistant.content);
-      } else {
-        const text = messages.map(m => `${m.role === 'user' ? '👤 دانش‌آموز' : '🤖 مشاور'}: ${m.content}`).join('\n\n');
-        setShareSummaryText(text);
-      }
-    } else {
-      setShareSummaryText(`برنامه درسی هدفمند ${settings.studentName || 'دانش‌آموز راکان'} - ${settings.studyGoal || 'موفقیت در کنکور و امتحانات نهایی'}`);
-    }
-    setIsShareModalOpen(true);
   };
 
   // Summarize recent chat key takeaways using selected AI model

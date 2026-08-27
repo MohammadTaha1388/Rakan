@@ -182,8 +182,5 @@ export const DEFAULT_SETTINGS: AdvisorSettings = {
   fontFamily: 'vazirmatn',
   mechanicalKeyboardSound: true,
   browserNotifications: false,
-  studyReminders: true,
-  dailyReminderEnabled: true,
-  dailyReminderTime: '17:30',
-  dailyReminderDays: ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه']
+  studyReminders: true
 };

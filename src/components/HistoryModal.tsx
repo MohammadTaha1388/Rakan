@@ -1,23 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  X,
-  Download,
-  Trash2,
-  RefreshCw,
-  Search,
-  Clock,
-  Cpu,
-  CheckCircle2,
-  AlertCircle,
-  FileText,
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  Check,
-  Hash,
-  Filter,
-  Calendar
-} from 'lucide-react';
+import { X, Download, Trash2, RefreshCw, Search, Clock, Cpu, CheckCircle2, AlertCircle, FileText, ChevronDown, ChevronUp, Copy, Check } from 'lucide-react';
 import { InteractionLog } from '../types';
 
 interface HistoryModalProps {
@@ -25,24 +7,10 @@ interface HistoryModalProps {
   onClose: () => void;
 }
 
-const STUDY_HASHTAGS = [
-  { id: 'all', label: 'همه موضوعات' },
-  { id: 'کنکور', label: '#کنکور' },
-  { id: 'برنامه', label: '#برنامه‌ریزی' },
-  { id: 'ریاضی', label: '#ریاضی' },
-  { id: 'فیزیک', label: '#فیزیک' },
-  { id: 'زیست', label: '#زیست' },
-  { id: 'شیمی', label: '#شیمی' },
-  { id: 'انگیزه', label: '#انگیزشی' },
-  { id: 'تست', label: '#روش_تست‌زنی' }
-];
-
 export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) => {
   const [logs, setLogs] = useState<InteractionLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTag, setSelectedTag] = useState('all');
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week'>('all');
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -104,31 +72,14 @@ ${log.botResponse}
   };
 
   const filteredLogs = logs.filter(log => {
-    const q = searchQuery.toLowerCase().trim();
-    const matchesQuery = !q || (
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
       log.userQuery.toLowerCase().includes(q) ||
       log.botResponse.toLowerCase().includes(q) ||
       log.model.toLowerCase().includes(q) ||
       log.persianDate.includes(q)
     );
-
-    const matchesTag = selectedTag === 'all' || (
-      log.userQuery.toLowerCase().includes(selectedTag) ||
-      log.botResponse.toLowerCase().includes(selectedTag)
-    );
-
-    let matchesDate = true;
-    if (dateFilter === 'today') {
-      const logDate = new Date(log.timestamp);
-      const today = new Date();
-      matchesDate = logDate.toDateString() === today.toDateString();
-    } else if (dateFilter === 'week') {
-      const logTime = new Date(log.timestamp).getTime();
-      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-      matchesDate = logTime >= weekAgo;
-    }
-
-    return matchesQuery && matchesTag && matchesDate;
   });
 
   return (
@@ -144,10 +95,10 @@ ${log.botResponse}
               <div className="flex items-center gap-2">
                 <h2 className="text-base sm:text-lg font-bold text-white">فایل لاگ تعاملات (chat_history.json)</h2>
                 <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-xs font-bold font-mono">
-                  {filteredLogs.length} از {logs.length} رکورد
+                  {logs.length} رکورد
                 </span>
               </div>
-              <p className="text-xs text-slate-400">جستجوی هوشمند در سوالات، پاسخ‌ها، تاریخ و هشتگ‌های درسی</p>
+              <p className="text-xs text-slate-400">ثبت دقیق پرسش‌های دانش‌آموز و پاسخ‌های مشاور با زمان و مشخصات مدل</p>
             </div>
           </div>
 
@@ -170,124 +121,56 @@ ${log.botResponse}
         </div>
 
         {/* Toolbar: Search, Filter, Download */}
-        <div className="p-4 border-b border-slate-800 bg-slate-950/40 space-y-3">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            {/* Search Bar */}
-            <div className="relative w-full sm:w-96">
-              <Search className="absolute right-3 top-2.5 w-4 h-4 text-slate-400" />
-              <input
-                id="history-search-input"
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="جستجو در متن سوالات، پاسخ‌ها، فرمول‌ها..."
-                className="w-full pr-9 pl-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-slate-200 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute left-2.5 top-2.5 text-slate-500 hover:text-slate-300"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
-            {/* Date Filter Tabs */}
-            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs shrink-0 w-full sm:w-auto justify-center">
-              <button
-                type="button"
-                onClick={() => setDateFilter('all')}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
-                  dateFilter === 'all' ? 'bg-amber-500/20 text-amber-300 font-bold' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                کل تاریخچه
-              </button>
-              <button
-                type="button"
-                onClick={() => setDateFilter('today')}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
-                  dateFilter === 'today' ? 'bg-amber-500/20 text-amber-300 font-bold' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                امروز
-              </button>
-              <button
-                type="button"
-                onClick={() => setDateFilter('week')}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
-                  dateFilter === 'week' ? 'bg-amber-500/20 text-amber-300 font-bold' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                ۷ روز گذشته
-              </button>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-              <button
-                onClick={handleDownload}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-950/40 transition-all active:scale-95 shrink-0"
-                title="دانلود فایل مستقیم chat_history.json"
-              >
-                <Download className="w-4 h-4" />
-                دانلود لاگ (JSON)
-              </button>
-
-              {showClearConfirm ? (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={handleClear}
-                    className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold"
-                  >
-                    تایید
-                  </button>
-                  <button
-                    onClick={() => setShowClearConfirm(false)}
-                    className="px-2 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs"
-                  >
-                    انصراف
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowClearConfirm(true)}
-                  disabled={logs.length === 0}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-rose-950/30 hover:bg-rose-900/40 text-rose-300 border border-rose-800/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-                  title="پاک‌سازی کامل لاگ‌های ذخیره‌شده"
-                >
-                  <Trash2 className="w-4 h-4 text-rose-400" />
-                  پاک‌سازی
-                </button>
-              )}
-            </div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-b border-slate-800 bg-slate-950/30">
+          {/* Search Bar */}
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute right-3 top-2.5 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="جستجو در سوالات و پاسخ‌ها..."
+              className="w-full pr-9 pl-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-slate-200 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+            />
           </div>
 
-          {/* Hashtag Quick Filter Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-            <span className="text-slate-500 flex items-center gap-1 shrink-0 ml-1">
-              <Hash className="w-3.5 h-3.5 text-amber-500" />
-              هشتگ‌های موضوعی:
-            </span>
-            {STUDY_HASHTAGS.map(tag => {
-              const isSelected = selectedTag === tag.id;
-              return (
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-md shadow-amber-950/40 transition-all active:scale-95"
+              title="دانلود فایل مستقیم chat_history.json"
+            >
+              <Download className="w-4 h-4" />
+              دانلود chat_history.json
+            </button>
+
+            {showClearConfirm ? (
+              <div className="flex items-center gap-1">
                 <button
-                  key={tag.id}
-                  type="button"
-                  onClick={() => setSelectedTag(tag.id)}
-                  className={`px-2.5 py-1 rounded-lg border text-xs whitespace-nowrap transition-all ${
-                    isSelected
-                      ? 'bg-amber-500/20 border-amber-500/60 text-amber-300 font-bold'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-300'
-                  }`}
+                  onClick={handleClear}
+                  className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold"
                 >
-                  {tag.label}
+                  تایید پاک‌سازی
                 </button>
-              );
-            })}
+                <button
+                  onClick={() => setShowClearConfirm(false)}
+                  className="px-2 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs"
+                >
+                  انصراف
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowClearConfirm(true)}
+                disabled={logs.length === 0}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-rose-950/30 hover:bg-rose-900/40 text-rose-300 border border-rose-800/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                title="پاک‌سازی کامل لاگ‌های ذخیره‌شده"
+              >
+                <Trash2 className="w-4 h-4 text-rose-400" />
+                پاک‌سازی
+              </button>
+            )}
           </div>
         </div>
 
@@ -301,9 +184,9 @@ ${log.botResponse}
           ) : filteredLogs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center text-slate-400 space-y-2">
               <FileText className="w-12 h-12 text-slate-600 mb-1" />
-              <p className="font-semibold text-slate-300">موردی متناسب با جستجو یافت نشد</p>
+              <p className="font-semibold text-slate-300">هنوز لاگی ثبت نشده است</p>
               <p className="text-xs text-slate-500 max-w-sm">
-                عبارت جستجو را تغییر دهید یا فیلتر هشتگ را روی «همه موضوعات» بگذارید.
+                هر پرسشی که از مشاور مدرسه راکان بپرسید، به همراه زمان دقیق و پاسخ در فایل chat_history.json ذخیره خواهد شد.
               </p>
             </div>
           ) : (

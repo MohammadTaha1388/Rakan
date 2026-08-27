@@ -15,9 +15,7 @@ import {
   LogIn,
   Download,
   Shield,
-  Globe,
-  Maximize2,
-  Minimize2
+  Globe
 } from 'lucide-react';
 import { AdvisorSettings, UserProfile } from '../types';
 import { SYSTEM_PROMPT_PRESETS } from '../utils/constants';
@@ -30,8 +28,6 @@ interface HeaderProps {
   user: UserProfile | null;
   unreadNotifs: number;
   hasMessages?: boolean;
-  isFocusMode?: boolean;
-  onToggleFocusMode?: () => void;
   onDownloadChat?: () => void;
   onOpenSettings: () => void;
   onOpenHistory: () => void;
@@ -52,8 +48,6 @@ export const Header: React.FC<HeaderProps> = ({
   user,
   unreadNotifs,
   hasMessages = false,
-  isFocusMode = false,
-  onToggleFocusMode,
   onDownloadChat,
   onOpenSettings,
   onOpenHistory,
@@ -253,34 +247,6 @@ export const Header: React.FC<HeaderProps> = ({
             <Wrench className="w-4 h-4 text-indigo-400" />
             <span className="hidden sm:inline">{t('tools', 'جعبه‌ابزار')}</span>
           </button>
-
-          {/* Focus Mode Toggle */}
-          {onToggleFocusMode && (
-            <button
-              id="header-focus-mode-btn"
-              onClick={onToggleFocusMode}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs sm:text-sm font-medium border transition-all ${
-                isFocusMode
-                  ? 'bg-amber-500/30 text-amber-300 border-amber-500/60 shadow-inner'
-                  : isDark
-                  ? 'bg-slate-800/80 text-slate-300 border-slate-700/70 hover:bg-slate-800'
-                  : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
-              }`}
-              title={isFocusMode ? 'خروج از حالت تمرکز کامل' : 'ورود به حالت تمرکز کامل (Focus Mode)'}
-            >
-              {isFocusMode ? (
-                <>
-                  <Minimize2 className="w-4 h-4 text-amber-400" />
-                  <span className="hidden sm:inline">خروج از تمرکز</span>
-                </>
-              ) : (
-                <>
-                  <Maximize2 className="w-4 h-4 text-amber-400" />
-                  <span className="hidden sm:inline">تمرکز کامل</span>
-                </>
-              )}
-            </button>
-          )}
 
           {/* Chat History & Log Viewer */}
           <button

@@ -17,11 +17,9 @@ import {
   Send,
   ThumbsUp,
   Heart,
-  Share2,
-  Bookmark,
-  BookmarkCheck
+  Share2
 } from 'lucide-react';
-import { ChatMessage, StudyNote } from '../types';
+import { ChatMessage } from '../types';
 
 interface MessageItemProps {
   message: ChatMessage;
@@ -29,7 +27,6 @@ interface MessageItemProps {
   onEditAndResend?: (messageId: string, newContent: string) => void;
   onReact?: (messageId: string, type: 'thumbsUp' | 'heart') => void;
   onShowToast?: (text: string) => void;
-  onOpenShareSummary?: (customText?: string) => void;
 }
 
 export const MessageItem: React.FC<MessageItemProps> = ({
@@ -37,81 +34,16 @@ export const MessageItem: React.FC<MessageItemProps> = ({
   theme = 'dark',
   onEditAndResend,
   onReact,
-  onShowToast,
-  onOpenShareSummary
+  onShowToast
 }) => {
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(message.content);
-  const [isSavedDraft, setIsSavedDraft] = useState(false);
 
   const isUser = message.role === 'user';
   const isDark = theme === 'dark';
-
-  // Check if already saved in study notes
-  useEffect(() => {
-    try {
-      const existing: StudyNote[] = JSON.parse(localStorage.getItem('rakan_study_notes') || '[]');
-      setIsSavedDraft(existing.some(n => n.originalMessageId === message.id));
-    } catch {
-      // ignore
-    }
-  }, [message.id]);
-
-  const handleSaveAsDraft = () => {
-    try {
-      const existing: StudyNote[] = JSON.parse(localStorage.getItem('rakan_study_notes') || '[]');
-      if (isSavedDraft) {
-        // Remove
-        const filtered = existing.filter(n => n.originalMessageId !== message.id);
-        localStorage.setItem('rakan_study_notes', JSON.stringify(filtered));
-        setIsSavedDraft(false);
-        if (onShowToast) onShowToast('از پیش‌نویس‌های درسی حذف شد');
-      } else {
-        // Detect category from content
-        let category: StudyNote['category'] = 'general';
-        const txt = message.content.toLowerCase();
-        if (txt.includes('ریاضی') || txt.includes('حسابان') || txt.includes('هندسه') || txt.includes('دیفرانسیل')) {
-          category = 'math';
-        } else if (txt.includes('فیزیک') || txt.includes('سینماتیک') || txt.includes('دینامیک') || txt.includes('مغناطیس')) {
-          category = 'physics';
-        } else if (txt.includes('زیست') || txt.includes('گیاهی') || txt.includes('ژنتیک') || txt.includes('سلول')) {
-          category = 'biology';
-        } else if (txt.includes('شیمی') || txt.includes('استوکیومتری') || txt.includes('اسید') || txt.includes('آلی')) {
-          category = 'chemistry';
-        } else if (txt.includes('کنکور') || txt.includes('تراز') || txt.includes('درصد') || txt.includes('تست')) {
-          category = 'konkur';
-        } else if (txt.includes('برنامه') || txt.includes('ساعت مطالعه') || txt.includes('پومودورو')) {
-          category = 'planning';
-        } else {
-          category = 'advisory';
-        }
-
-        const newNote: StudyNote = {
-          id: 'note_' + Date.now(),
-          text: message.content,
-          category,
-          date: new Intl.DateTimeFormat('fa-IR', {
-            month: 'numeric',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          }).format(new Date()),
-          originalMessageId: message.id,
-          timestamp: new Date().toISOString()
-        };
-
-        localStorage.setItem('rakan_study_notes', JSON.stringify([newNote, ...existing]));
-        setIsSavedDraft(true);
-        window.dispatchEvent(new Event('rakan_note_saved'));
-        if (onShowToast) onShowToast('به عنوان پیش‌نویس خلاصه درسی ذخیره شد 📝');
-      }
-    } catch (err) {
-      console.error('Error saving study note:', err);
-    }
-  };
 
   // Stop speech when component unmounts
   useEffect(() => {
@@ -518,57 +450,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                 </button>
               )}
 
-              {/* Save / Bookmark to Study Drafts Button (Assistant Messages) */}
-              {!isUser && (
-                <button
-                  type="button"
-                  id={`save-draft-btn-${message.id}`}
-                  onClick={handleSaveAsDraft}
-                  className={`p-1.5 rounded-lg transition-all flex items-center gap-1 ${
-                    isSavedDraft
-                      ? 'text-amber-400 bg-amber-500/20 ring-1 ring-amber-400/40 font-bold'
-                      : isDark
-                      ? 'hover:bg-slate-800 text-slate-400 hover:text-amber-300'
-                      : 'hover:bg-slate-100 text-slate-500 hover:text-amber-600'
-                  }`}
-                  title={
-                    isSavedDraft
-                      ? 'حذف از پیش‌نویس‌های خلاصه درسی'
-                      : 'ذخیره پاسخ هوش مصنوعی در پیش‌نویس‌های درسی (پنل ابزارهای مطالعه)'
-                  }
-                >
-                  {isSavedDraft ? (
-                    <>
-                      <BookmarkCheck className="w-3.5 h-3.5 text-amber-400" />
-                      <span className="text-[10px] text-amber-400 font-bold">ذخیره شد</span>
-                    </>
-                  ) : (
-                    <>
-                      <Bookmark className="w-3.5 h-3.5" />
-                      <span className="text-[10px] hidden sm:inline">پیش‌نویس درسی</span>
-                    </>
-                  )}
-                </button>
-              )}
-
-              {/* Share Summary / Link / Image Button */}
-              {!isUser && onOpenShareSummary && (
-                <button
-                  type="button"
-                  id={`share-summary-btn-${message.id}`}
-                  onClick={() => onOpenShareSummary(message.content)}
-                  className={`p-1.5 rounded-lg transition-colors flex items-center gap-1 ${
-                    isDark
-                      ? 'hover:bg-slate-800 text-slate-400 hover:text-indigo-300'
-                      : 'hover:bg-slate-100 text-slate-500 hover:text-indigo-600'
-                  }`}
-                  title="تولید لینک اشتراک‌گذاری یا کارت تصویری از این پاسخ"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span className="text-[10px] hidden sm:inline">تولید تصویر/لینک</span>
-                </button>
-              )}
-
               {/* Share Button with small toast trigger */}
               <button
                 type="button"
@@ -591,7 +472,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                 ) : (
                   <>
                     <Share2 className="w-3.5 h-3.5" />
-                    <span className="text-[10px] hidden sm:inline">کپی متن</span>
+                    <span className="text-[10px] hidden sm:inline">اشتراک</span>
                   </>
                 )}
               </button>

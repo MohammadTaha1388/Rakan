@@ -68,21 +68,6 @@ export interface AdvisorSettings {
   mechanicalKeyboardSound?: boolean;
   browserNotifications: boolean;
   studyReminders: boolean;
-  dailyReminderEnabled?: boolean;
-  dailyReminderTime?: string;
-  dailyReminderDays?: string[];
-}
-
-export interface StudyNote {
-  id: string;
-  title?: string;
-  text: string;
-  category: 'general' | 'math' | 'physics' | 'biology' | 'chemistry' | 'konkur' | 'planning' | 'exam' | 'advisory';
-  sourceMessageId?: string;
-  date: string;
-  timestamp: string;
-  tags?: string[];
-  isPinned?: boolean;
 }
 
 export interface QuickPrompt {
