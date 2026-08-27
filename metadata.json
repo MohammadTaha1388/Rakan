@@ -1,0 +1,6 @@
+{
+  "name": "مشاور هوشمند مدرسه راکان | Rakan School AI Advisor",
+  "description": "سامانه جامع و مشاور هوشمند درسی و کنکور مدرسه راکان با قلم تک‌فاصله مطالعه و وزیرمتن، پیشنهاد هوشمند هشتگ‌های درسی (#)، صدای کلیک مکانیکی صفحه‌کلید، شمارنده هوشمند طول سوال، احراز هویت دانش‌آموزی، نمودار پیشرفت هفتگی Recharts، صداهای تمرکز و لاگ خودکار در chat_history.json",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
